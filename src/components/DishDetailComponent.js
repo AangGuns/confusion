@@ -3,28 +3,22 @@ import { Card, CardImg, CardText, CardBody, CardTitle, Col,
         Breadcrumb, BreadcrumbItem, Button, Modal, ModalHeader, ModalBody,
         Form, FormGroup, FormFeedback, Input, Label, Row } from 'reactstrap';
 import { Link } from 'react-router-dom';
+import { Control, Errors, LocalForm } from 'react-redux-form';
+
+const required = (val) => val && val.length;
+const maxLength = (len) => (val) => !(val) || (val.length <= len);
+const minLength = (len) => (val) => (val) && (val.length >= len); 
 
 class CommentForm extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            username: '',
-            rateSelect: '',
-            comment: '',
-            isNavOpen: false,
-            isModalOpen: false,
-            touched: {
-                username: false,
-                rateSelect: false,
-                comment: false
-            }
+            isModalOpen: false
         };
 
         this.toggleModal = this.toggleModal.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
     }
 
     toggleModal() {
@@ -33,43 +27,14 @@ class CommentForm extends React.Component {
         });
     }
 
-    handleInputChange(event) {
-        const target = event.target;
-        const value = target.value;
-        const name = target.name;
-
-        this.setState({
-            [name]: value
-        });
-    }
-
     handleSubmit(values) {
+        this.toggleModal();
         console.log("Current State is: " + JSON.stringify(values));
         alert("Current State is: " + JSON.stringify(values));
     }
 
-    handleBlur = (field) => (evt) => {
-        this.setState({
-            touched: { ...this.state.touched, [field]: true}
-        });
-    }
-
-    validate(username) {
-        const errors = {
-            username: ''
-        };
-
-        if (this.state.touched.username && username.length < 3) {
-            errors.username = 'Must be greater than 2 characters';
-        } else if (this.state.touched.username && username.length > 15) {
-            errors.username = 'Must be 15 characters or less';
-        }
-
-        return errors;
-    }
-
     render() {
-        const errors = this.validate(this.state.username);
+        // const errors = this.validate(this.state.username);
         return (
             <div>
                 <Button outline onClick={this.toggleModal} color="secondary">
@@ -78,41 +43,55 @@ class CommentForm extends React.Component {
                 <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
                     <ModalHeader toggle={this.toggleModal}>Submit Comment</ModalHeader>
                     <ModalBody>
-                        <Form onSubmit={this.handleSubmit}>
-                            <FormGroup>
+                        <LocalForm onSubmit={(values) => this.handleSubmit(values)}>
+                            <Row className="form-group">
+                                    <Col>
                                     <Label htmlFor="rateSelect">Rating</Label>
-                                    <Input type="select" id=".rateSelect" name="rateSelect" 
-                                         value={this.state.rateSelect}
-                                         onChange={this.handleInputChange} >
-                                        <option>1</option>
-                                        <option>2</option>
-                                        <option>3</option>
-                                        <option>4</option>
-                                        <option>5</option>
-                                    </Input>
-                            </FormGroup>
-                            <FormGroup>
-                                    <Label htmlFor="username">Your Name</Label>
-                                    <Input type="text" id="username" name="username" 
+                                        <Control.select model=".rateSelect" id="rateSelect" name="rateSelect" 
+                                            className="form-control" >
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>3</option>
+                                            <option>4</option>
+                                            <option>5</option>
+                                        </Control.select>
+                                    </Col>
+                            </Row>
+                            <Row className="form-group">
+                                <Col>
+                                <Label htmlFor="username">Your Name</Label>
+                                    <Control.text model=".username" id="username" name="username" 
                                         placeholder="Your Name"
-                                        value={this.state.username}
-                                        invalid={errors.username !== ''}
-                                        onBlur={this.handleBlur('username')}
-                                        onChange={this.handleInputChange} />
-                                        <FormFeedback>{errors.username}</FormFeedback>
-                            </FormGroup>
-                            <FormGroup>
+                                        className="form-control"
+                                        validators={{
+                                            required, minLength: minLength(3), maxLength: maxLength(15)
+                                        }} />
+                                    <Errors className="text-danger" model=".username" 
+                                        show="touched" messages={{
+                                            required: 'Required ',
+                                            minLength: 'Must be greater than 3 characters',
+                                            maxLength: 'Must be 15 characters or less'
+                                        }} />
+                                </Col>
+                            </Row>
+                            <Row className="form-group">
+                                    <Col>
                                     <Label htmlFor="comment">Comment</Label>
-                                    <Input type="textarea" id="comment" name="comment" 
-                                        rows="6" 
-                                        value={this.state.comment}
-                                        onBlur={this.handleBlur('username')}
-                                        onChange={this.handleInputChange} />
-                            </FormGroup>
-                            <FormGroup>
-                                    <Button type="submit" value="submit" color="primary">Submit</Button>
-                            </FormGroup>
-                        </Form>
+                                        <Control.textarea model=".comment" id="comment" name="comment" 
+                                            rows="6" 
+                                            className="form-control"
+                                            validators={{
+                                                required
+                                            }} />
+                                        <Errors className="text-danger" model=".comment" show="touched"
+                                            messages={{
+                                                required: 'Required'
+                                            }}
+                                        />
+                                    </Col>
+                            </Row>
+                            <Button type="submit" value="submit" color="primary">Submit</Button>
+                        </LocalForm>
                     </ModalBody>
                 </Modal>
             </div>
