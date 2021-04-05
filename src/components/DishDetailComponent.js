@@ -29,8 +29,7 @@ class CommentForm extends React.Component {
 
     handleSubmit(values) {
         this.toggleModal();
-        console.log("Current State is: " + JSON.stringify(values));
-        alert("Current State is: " + JSON.stringify(values));
+        this.props.addComment(this.props.dishId, values.rating, values.author, values.comment);
     }
 
     render() {
@@ -60,7 +59,7 @@ class CommentForm extends React.Component {
                             <Row className="form-group">
                                 <Col>
                                 <Label htmlFor="username">Your Name</Label>
-                                    <Control.text model=".username" id="username" name="username" 
+                                    <Control.text model=".author" id="author" name="author" 
                                         placeholder="Your Name"
                                         className="form-control"
                                         validators={{
@@ -113,28 +112,26 @@ function RenderDish({dish}) {
     );
 }
 
-function RenderComments( comments ) {
-    const rate = comments.comments.map((comment) => {
-        return (
-            <li key={comment.id}>
-                <p>{comment.comment}</p>
-                <p>-- {comment.author}, {new Intl.DateTimeFormat('en-US', {
-                                                                            year: 'numeric', 
-                                                                            month: 'short', 
-                                                                            day:'2-digit' })
-                                                                            .format(new Date(Date.parse(comment.date)))}
-                </p>
-            </li> 
-            );
-        });
-
+function RenderComments( {comments, addComment, dishId} ) {
     return (
         <div className="col-12 col-md-5 m-1">
             <h4>Comments</h4>
             <ul className="list-unstyled">
-                {rate}
+                {comments.map((comment) => {
+                    return (
+                        <li key={comment.id}>
+                            <p>{comment.comment}</p>
+                            <p>-- {comment.author}, {new Intl.DateTimeFormat('en-US', {
+                                                                                        year: 'numeric', 
+                                                                                        month: 'short', 
+                                                                                        day:'2-digit' })
+                                                                                        .format(new Date(Date.parse(comment.date)))}
+                            </p>
+                        </li> 
+                    );
+                })}
             </ul>
-            <CommentForm />
+            <CommentForm dishId={dishId} addComment={addComment} />
         </div>
     );
         
@@ -156,7 +153,9 @@ const DishDetail = (props) => {
                 </div>
                 <div className="row">
                     <RenderDish dish={props.dish} />
-                    <RenderComments comments={props.comments} />
+                    <RenderComments comments={props.comments}
+                        addComment={props.addComment}
+                        dishId={props.dish.id} />
                 </div>
             </div>
         );
